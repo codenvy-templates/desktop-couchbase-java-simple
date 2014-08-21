@@ -1,6 +1,7 @@
 package com.codenvy.example.couchbase;
 
 import com.couchbase.client.CouchbaseClient;
+import com.couchbase.client.CouchbaseConnectionFactoryBuilder;
 import com.couchbase.client.protocol.views.DesignDocument;
 import com.couchbase.client.protocol.views.Query;
 import com.couchbase.client.protocol.views.Stale;
@@ -22,7 +23,12 @@ public class Application {
         final String bucket = "default";
         final String password = "";
 
-        CouchbaseClient client = new CouchbaseClient(hosts, bucket, password);
+        System.setProperty("viewmode", "development");
+
+        CouchbaseConnectionFactoryBuilder cfb = new CouchbaseConnectionFactoryBuilder();
+        cfb.setViewTimeout(10000);
+
+        CouchbaseClient client = new CouchbaseClient(cfb.buildCouchbaseConnection(hosts, bucket, password));
 
         final String newDocumentKey = client.set("my-first-document", "Hello Couchbase!").getKey();
 
@@ -72,6 +78,7 @@ public class Application {
         query.setStale(Stale.FALSE);
 
         ViewResponse viewResponse = client.query(view, query);
+
         for (ViewRow row : viewResponse) {
             System.out.println(String.format("Found: %s", row.getDocument()));
         }
